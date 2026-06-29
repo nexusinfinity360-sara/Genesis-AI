@@ -16,27 +16,52 @@ export default function ChatBubble({
 }: Props) {
   return (
     <div
-      className={`mb-5 flex ${
+      className={`mb-6 flex ${
         role === "user" ? "justify-end" : "justify-start"
       }`}
     >
       <div
-        className={`max-w-2xl rounded-2xl px-4 py-3 shadow-lg ${
+        className={`max-w-3xl rounded-2xl overflow-hidden shadow-xl ${
           role === "user"
             ? "bg-green-600 text-white"
-            : "bg-gray-800 text-white"
+            : "bg-[#1f2937] text-white border border-gray-700"
         }`}
       >
         {image ? (
-          <img
-            src={image}
-            alt="Generated Image"
-            className="rounded-xl max-w-full"
-          />
+          <div className="p-3">
+            <img
+              src={image}
+              alt="Generated"
+              className="rounded-xl w-full cursor-pointer hover:scale-[1.02] transition duration-300"
+            />
+
+            <div className="flex gap-2 mt-3">
+              <a
+                href={image}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-sm"
+              >
+                ⬇ Download
+              </a>
+
+              <a
+                href={image}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm"
+              >
+                🔍 View Full
+              </a>
+            </div>
+          </div>
         ) : (
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {text || ""}
-          </ReactMarkdown>
+          <div className="p-4 leading-7">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {text || ""}
+            </ReactMarkdown>
+          </div>
         )}
       </div>
     </div>

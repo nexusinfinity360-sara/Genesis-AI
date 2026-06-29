@@ -23,6 +23,8 @@ export default function AIChat() {
 
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] =
+    useState("🤖 Thinking...");
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -48,6 +50,34 @@ export default function AIChat() {
     ]);
 
     setInput("");
+
+    const imageKeywords = [
+      "image",
+      "generate image",
+      "create image",
+      "draw",
+      "paint",
+      "photo",
+      "picture",
+      "wallpaper",
+      "logo",
+      "illustration",
+      "art",
+      "sketch",
+      "anime",
+      "render",
+    ];
+
+    const isImage = imageKeywords.some((word) =>
+      userMessage.toLowerCase().includes(word)
+    );
+
+    setLoadingMessage(
+      isImage
+        ? "🖼️ Generating masterpiece..."
+        : "🤖 Thinking..."
+    );
+
     setLoading(true);
 
     try {
@@ -101,9 +131,7 @@ export default function AIChat() {
 
   return (
     <div className="flex flex-col h-full">
-
       <div className="flex-1 overflow-y-auto p-5">
-
         {messages.map((msg) => (
           <ChatBubble
             key={msg.id}
@@ -116,33 +144,37 @@ export default function AIChat() {
         {loading && (
           <ChatBubble
             role="ai"
-            text="🤖 Thinking..."
+            text={loadingMessage}
           />
         )}
 
         <div ref={chatEndRef} />
-
       </div>
 
       <div className="border-t border-gray-700 p-4 flex gap-2">
-
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          onKeyDown={(e) =>
+            e.key === "Enter" && sendMessage()
+          }
           placeholder="Ask Genesis AI anything..."
           className="flex-1 rounded-xl bg-gray-900 p-3 outline-none text-white"
         />
 
         <button
-          onClick={sendMessage}
-          className="rounded-xl bg-green-500 px-5 hover:bg-green-600 transition"
-        >
-          Send
-        </button>
-
+  onClick={sendMessage}
+  disabled={loading}
+  className={`rounded-xl px-5 transition text-white ${
+    loading
+      ? "bg-gray-600 cursor-not-allowed"
+      : "bg-green-500 hover:bg-green-600"
+  }`}
+>
+  {loading ? "Generating..." : "Send"}
+</button>
+          
       </div>
-
     </div>
   );
 }
