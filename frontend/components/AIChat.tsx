@@ -4,14 +4,19 @@ import { useState, useRef, useEffect } from "react";
 import ChatBubble from "./ChatBubble";
 
 type Message = {
+  id: string;
   role: "user" | "ai";
-  text: string;
+  type: "text" | "image";
+  text?: string;
+  image?: string;
 };
 
 export default function AIChat() {
   const [messages, setMessages] = useState<Message[]>([
     {
+      id: crypto.randomUUID(),
       role: "ai",
+      type: "text",
       text: "Hi 👋 How can I help you today?",
     },
   ]);
@@ -35,7 +40,9 @@ export default function AIChat() {
     setMessages((prev) => [
       ...prev,
       {
+        id: crypto.randomUUID(),
         role: "user",
+        type: "text",
         text: userMessage,
       },
     ]);
@@ -56,18 +63,34 @@ export default function AIChat() {
 
       const data = await res.json();
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "ai",
-          text: data.reply,
-        },
-      ]);
+      if (data.type === "image") {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            role: "ai",
+            type: "image",
+            image: data.image,
+          },
+        ]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            role: "ai",
+            type: "text",
+            text: data.reply,
+          },
+        ]);
+      }
     } catch {
       setMessages((prev) => [
         ...prev,
         {
+          id: crypto.randomUUID(),
           role: "ai",
+          type: "text",
           text: "⚠️ Something went wrong.",
         },
       ]);
@@ -81,11 +104,12 @@ export default function AIChat() {
 
       <div className="flex-1 overflow-y-auto p-5">
 
-        {messages.map((msg, index) => (
+        {messages.map((msg) => (
           <ChatBubble
-            key={index}
+            key={msg.id}
             role={msg.role}
             text={msg.text}
+            image={msg.image}
           />
         ))}
 

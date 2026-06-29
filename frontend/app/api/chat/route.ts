@@ -1,49 +1,95 @@
 import { NextResponse } from "next/server";
 
+const IMAGE_KEYWORDS = [
+  "image",
+  "generate image",
+  "create image",
+  "draw",
+  "paint",
+  "photo",
+  "picture",
+  "wallpaper",
+  "logo",
+  "illustration",
+  "art",
+  "sketch",
+  "anime",
+  "render",
+];
+
+function isImagePrompt(prompt: string) {
+  const text = prompt.toLowerCase();
+
+  return IMAGE_KEYWORDS.some((word) => text.includes(word));
+}
+
 export async function POST(req: Request) {
   try {
     const { message } = await req.json();
 
-    if (!process.env.GROQ_API_KEY) {
+    // ------------------------
+    // IMAGE REQUEST
+    // ------------------------
+
+    if (isImagePrompt(message)) {
+      const prompt = encodeURIComponent(message);
+
+      const imageUrl = `https://image.pollinations.ai/prompt/${prompt}`;
+
       return NextResponse.json({
-        reply: "GROQ_API_KEY missing in .env.local",
+        type: "image",
+        image: imageUrl,
       });
     }
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
-        messages: [
-          { role: "system", content: "You are a helpful assistant." },
-          { role: "user", content: message },
-        ],
-      }),
-    });
+    // ------------------------
+    // NORMAL CHAT
+    // ------------------------
+
+    const response = await fetch(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-8b-instant",
+          messages: [
+            {
+              role: "system",
+              content: "You are Genesis AI, a helpful assistant.",
+            },
+            {
+              role: "user",
+              content: message,
+            },
+          ],
+        }),
+      }
+    );
 
     const data = await response.json();
 
     if (!response.ok) {
-      console.log("GROQ ERROR:", data);
-
       return NextResponse.json({
-        reply: data.error?.message || "Groq API failed",
+        type: "text",
+        reply: data.error?.message || "Groq Error",
       });
     }
 
     return NextResponse.json({
-      reply: data.choices?.[0]?.message?.content,
+      type: "text",
+      reply: data.choices[0].message.content,
     });
 
   } catch (error) {
-    console.log("SERVER ERROR:", error);
+    console.log(error);
 
     return NextResponse.json({
-      reply: "Backend error ⚠️",
+      type: "text",
+      reply: "Backend Error ⚠️",
     });
   }
 }
